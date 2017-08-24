@@ -63,12 +63,12 @@ def main(offset):
         write_to_file(item)
 
 if __name__ == '__main__':
-    for i in range(10):
-        main(i*10)
+#     for i in range(10):
+#         main(i*10)
 
 # 下面利用进程池爬数据，速度快
-#     pool = Pool()
-#     pool.map(main,[x*10 for x in range(10)])
+    pool = Pool()
+    pool.map(main,[x*10 for x in range(10)])
 
 
 
