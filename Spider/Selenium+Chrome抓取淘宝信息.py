@@ -13,15 +13,20 @@ from selenium.webdriver.support import expected_conditions as EC
 from pyquery import PyQuery as pq
 from config import *
 import pymongo
-
+# 下里面就是mongodb的东西
 client = pymongo.MongoClient(MONGO_URL)
 db = client[MONGO_DB]
 
+# PhantomJS引入
 browser = webdriver.PhantomJS(service_args=SERVICE_ARGS)
+# 设置PhantomJS浏览器窗口大小
+browser.set_window_size(1400, 900)
+
+# browser = webdriver.Chrome(service_args=SERVICE_ARGS) #直接用的谷歌浏览器
+
 # 操作简单复制到一个变量代替
 wait = WebDriverWait(browser, 10)
 
-browser.set_window_size(1400, 900)
 
 def search():
     print('正在搜索')
@@ -45,7 +50,7 @@ def search():
     except TimeoutException:
         return search()
 
-
+# 跳到下一页
 def next_page(page_number):
     print('正在翻页', page_number)
     try:
@@ -57,17 +62,18 @@ def next_page(page_number):
         input.clear()
         input.send_keys(page_number)
         submit.click()
+        # 下判断是不是当前页
         wait.until(EC.text_to_be_present_in_element(
             (By.CSS_SELECTOR, '#mainsrp-pager > div > div > div > ul > li.item.active > span'), str(page_number)))
         get_products()
     except TimeoutException:
         next_page(page_number)
 
-
+# 得到宝贝信息
 def get_products():
     wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '#mainsrp-itemlist .items .item')))
-    html = browser.page_source
-    doc = pq(html)
+    html = browser.page_source # 得到整页的源代码
+    doc = pq(html)  # 解析html
     items = doc('#mainsrp-itemlist .items .item').items()
     for item in items:
         product = {
@@ -94,12 +100,13 @@ def main():
     try:
         total = search()
         total = int(re.compile('(\d+)').search(total).group(1))
+        print(total)
         for i in range(2, total + 1):
             next_page(i)
     except Exception:
         print('出错啦')
     finally:
-        browser.close()
+        browser.close()# 关闭浏览器
 
 if __name__ == '__main__':
     main()
